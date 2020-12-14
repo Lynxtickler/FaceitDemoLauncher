@@ -1,14 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace FaceitDemoLauncher
@@ -75,7 +66,7 @@ namespace FaceitDemoLauncher
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(100, 23);
             this.button1.TabIndex = 1;
-            this.button1.Text = "Browse file...";
+            this.button1.Text = "&Browse file...";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.OnBrowseButtonClick);
             // 
@@ -88,8 +79,7 @@ namespace FaceitDemoLauncher
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(85, 23);
             this.button2.TabIndex = 2;
-            this.button2.Text = "Extract...";
-            this.button2.UseMnemonic = false;
+            this.button2.Text = "E&xtract...";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.OnExtractButtonClick);
             // 
@@ -129,24 +119,24 @@ namespace FaceitDemoLauncher
             this.Menu = new MainMenu();
             var menuitems = new MenuItem[]
             {
-                new MenuItem("File"),
-                new MenuItem("Edit"),
-                new MenuItem("Help")
+                new MenuItem("&File"),
+                new MenuItem("&Edit"),
+                new MenuItem("&Help")
             };
-            menuitems[0].MenuItems.Add("Open...", OnBrowseButtonClick);
-            menuitems[0].MenuItems.Add("Exit", OnExitClick);
-            menuitems[1].MenuItems.Add("Change csgo folder...", OnChangeFolderClick);
-            menuitems[2].MenuItems.Add("About", OnShowInfoClick);
+            menuitems[0].MenuItems.Add("&Open...", OnBrowseButtonClick);
+            menuitems[0].MenuItems.Add("&Exit", OnExitClick);
+            menuitems[1].MenuItems.Add("&Change csgo folder...", OnChangeFolderClick);
+            menuitems[2].MenuItems.Add("&About", OnShowInfoClick);
             // TODO loput itemit
             foreach (var item in menuitems)
             {
-                this.Menu.MenuItems.Add(item);
+                Menu.MenuItems.Add(item);
             }
         }
 
         private void OnMainWindowShown(object sender, EventArgs e)
         {
-            if (!Program.UpdateCounterStrikeInstallPath()) { this.Close(); }
+            if (!Program.UpdateCounterStrikeInstallPath()) { Close(); }
             if (Program.FetchDemoFromArguments())
                 UpdateFormElements();
         }
@@ -195,7 +185,7 @@ namespace FaceitDemoLauncher
 
         private void OnExitClick(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         /// <summary>
@@ -206,13 +196,14 @@ namespace FaceitDemoLauncher
         {
             if (validFileSelected)
             {
-                this.label1.Text = Program.dropAreaTextRoot + Path.GetFileName(Program.compressedFilePath);
-                this.button2.Enabled = true;
+                label1.Text = Program.dropAreaTextRoot + Path.GetFileName(Program.compressedFilePath);
+                button2.Enabled = true;
+                button2.Focus();
             }
             else
             {
-                this.label1.Text = Program.DefaultDropAreaText;
-                this.button2.Enabled = false;
+                label1.Text = Program.DefaultDropAreaText;
+                button2.Enabled = false;
             }
         }
     }
