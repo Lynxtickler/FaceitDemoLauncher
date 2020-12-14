@@ -11,7 +11,7 @@ namespace FaceitDemoLauncher
     /// </summary>
     static class Program
     {
-        public const string CurrentVersion = "1.0.1";
+        public static string Version => Application.ProductVersion;
         private static string[] programArgs;
 
         public static string compressedFilePath;
@@ -22,6 +22,7 @@ namespace FaceitDemoLauncher
         public const string InvalidFileTypeMessage = "Only use filetype .dem.gz!";
         public const string DefaultDropAreaText = "Drop <demo>.dem.gz here";
         public const string dropAreaTextRoot = "Drop new <demo>.dem.gz here\nor\nExtract using ";
+
 
         private enum FileValidationCode { Valid, ErrorWrongType, ErrorUnknown }
         public enum MessageFormCode { Cancel, Launch }
