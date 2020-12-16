@@ -8,6 +8,20 @@ namespace FaceitDemoLauncher
     /// </summary>
     public partial class MessageForm : Form
     {
+        private string demoName;
+
+        /// <summary>
+        /// Overloaded constructor.
+        /// </summary>
+        /// <param name="path">Extracted demo file name</param>
+        public MessageForm(string path) : this()
+        {
+            demoName = path;
+        }
+
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
         public MessageForm()
         {
             InitializeComponent();
@@ -28,7 +42,9 @@ namespace FaceitDemoLauncher
                     textTimer.Enabled = false;
                 };
                 textTimer.Enabled = true;
-                Clipboard.SetText("playdemo " + System.IO.Path.GetFileNameWithoutExtension(Program.compressedFilePath));
+                if (string.IsNullOrWhiteSpace(demoName))
+                    demoName = System.IO.Path.GetFileNameWithoutExtension(Program.compressedFilePath);
+                Clipboard.SetText("playdemo " + demoName);
             };
 
             button3.Click += (object sender, EventArgs e) => {

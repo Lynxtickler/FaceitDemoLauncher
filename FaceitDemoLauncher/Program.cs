@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Windows.Forms;
 
 namespace FaceitDemoLauncher
@@ -23,9 +22,9 @@ namespace FaceitDemoLauncher
         public const string DefaultDropAreaText = "Drop <demo>.dem.gz here";
         public const string dropAreaTextRoot = "Drop new <demo>.dem.gz here\nor\nExtract using ";
 
-
         private enum FileValidationCode { Valid, ErrorWrongType, ErrorUnknown }
         public enum MessageFormCode { Cancel, Launch }
+
 
         /// <summary>
         /// The main entry point for the application.
@@ -109,42 +108,63 @@ namespace FaceitDemoLauncher
         /// <summary>
         /// Call methods for extracting demo file and showing the user gamelauncher dialog.
         /// </summary>
-        public static bool ExtractAndShow()
+        /// <param name="newFileName">Optional name for decompressed demo file</param>
+        public static bool ExtractAndShow(string newFileName = null)
         {
-            string filePath = Decompress();
+            string filePath = Decompress(newFileName);
             if (filePath == null)
             {
                 Console.WriteLine("Failed decompressing the file.");
                 return false;
             }
-            return StartWatchingDemo(filePath);
+            return StartWatchingDemo(Path.GetFileName(filePath));
         }
 
         /// <summary>
         /// Decompress demo file to csgo-folder.
         /// </summary>
+        /// <param name="newFileName">Optional new name for decompressed file</param>
         /// <returns>Decompressed demo file path, null if decompression failed</returns>
-        private static string Decompress()
+        private static string Decompress(string newFileName = null)
         {
             try
             {
                 if (Config.counterStrikeInstallPath == null)
                     return null;
-                string newFileName = Path.Combine(new string[] { Config.counterStrikeInstallPath, Path.GetFileNameWithoutExtension(compressedFilePath) });
-                if (DoesValidFileExist(newFileName))
-                    return newFileName;
-                var compressedFile = new FileInfo(compressedFilePath);
-                using (FileStream compressedFileStream = compressedFile.OpenRead())
+                string newFilePath;
+                if (IsFileValid(newFileName))
                 {
-                    using (FileStream decompressedFileStream = File.Create(newFileName))
+                    if (!newFileName.EndsWith(".dem"))
+                        newFileName = newFileName + ".dem";
+                    newFilePath = Path.Combine(new string[] { Config.counterStrikeInstallPath, newFileName });
+                }
+                else
+                {
+                    newFilePath = Path.Combine(new string[] { Config.counterStrikeInstallPath, Path.GetFileNameWithoutExtension(compressedFilePath) });
+                    if (DoesValidFileExist(newFilePath))
+                        return newFilePath;
+                }
+                var compressedFile = new FileInfo(compressedFilePath);
+                FileStream compressedFileStream = null;
+                FileStream decompressedFileStream = null;
+                try
+                {
+                    compressedFileStream = compressedFile.OpenRead();
+                    decompressedFileStream = File.Create(newFilePath);
+                    using (var decompressionStream = new GZipStream(compressedFileStream, CompressionMode.Decompress))
                     {
-                        using (var decompressionStream = new GZipStream(compressedFileStream, CompressionMode.Decompress))
-                        {
-                            decompressionStream.CopyTo(decompressedFileStream);
-                            Console.WriteLine("Successfully decompressed demo file.");
-                            return newFileName;
-                        }
+                        decompressionStream.CopyTo(decompressedFileStream);
+                        Console.WriteLine("Successfully decompressed demo file.");
+                        return newFilePath;
                     }
+                    
+                }
+                finally
+                {
+                    if (compressedFileStream == null)
+                        compressedFileStream.Dispose();
+                    if (decompressedFileStream == null)
+                        decompressedFileStream.Dispose();
                 }
             }
             catch
@@ -156,24 +176,43 @@ namespace FaceitDemoLauncher
         /// <summary>
         /// Show dialog to instantly view demo in-game or copy the appropriate console command.
         /// </summary>
-        /// <param name="filePath">Demo file path</param>
+        /// <param name="demoName">Demo file name</param>
         /// <returns>If user launched the game</returns>
-        private static bool StartWatchingDemo(string filePath)
+        private static bool StartWatchingDemo(string demoName)
         {
-            var messageForm = new MessageForm();
+            var messageForm = new MessageForm(demoName);
             messageForm.ShowDialog();
             if (messageFormReturnCode == MessageFormCode.Launch)
+            {
+                RunStartInHiddenCmd(launchCommand);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Open hidden Command Prompt window and pass command as param to start-command line utility.
+        /// </summary>
+        /// <param name="command">Command to execute</param>
+        /// <returns>True if nothing unexpected happened</returns>
+        public static bool RunStartInHiddenCmd(string command)
+        {
+            try
             {
                 var process = new System.Diagnostics.Process();
                 var startInfo = new System.Diagnostics.ProcessStartInfo()
                 {
                     WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
                     FileName = "cmd.exe",
-                    Arguments = launchCommand
+                    Arguments = "/c start \"\" " + $"\"{command}\""
                 };
                 process.StartInfo = startInfo;
-                System.Diagnostics.Process.Start("cmd", "/c start \"\" " + $"\"{launchCommand}\"");
+                process.Start();
                 return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
             return false;
         }
@@ -199,14 +238,12 @@ namespace FaceitDemoLauncher
         /// <returns>True if a valid path was set</returns>
         public static bool UpdateCounterStrikeInstallPath(bool readConfig = true)
         {
-            if ((readConfig) && (ConfigHandler.ReadConfig()))
+            if ( (readConfig) && (ConfigHandler.ReadConfig()) )
                 return true;
             if (PickNewCounterStrikeFolder(readConfig))
                 return true;
             return false;
         }
-
-
 
         /// <summary>
         /// Show folder dialog for choosing new csgo-folder path.
@@ -224,7 +261,7 @@ namespace FaceitDemoLauncher
                 while (true)
                 {
                     DialogResult result = folderPicker.ShowDialog();
-                    if (result != DialogResult.OK || string.IsNullOrWhiteSpace(folderPicker.SelectedPath))
+                    if ( (result != DialogResult.OK) || (string.IsNullOrWhiteSpace(folderPicker.SelectedPath)) )
                         return false;
                     if (IsCounterStrikeFolderValid(folderPicker.SelectedPath))
                         break;
@@ -247,15 +284,33 @@ namespace FaceitDemoLauncher
         /// <returns>If file is valid</returns>
         public static bool DoesValidFileExist(string path)
         {
-            if (File.Exists(path))
-            {
-                foreach (char c in System.IO.Path.GetInvalidPathChars())
-                {
-                    if (path.Contains(c)) return false;
-                }
+            if ( (File.Exists(path)) && (IsPathValid(path)) )
                 return true;
-            }
             return false;
+        }
+
+        /// <summary>
+        /// Check if a whole path is valid in theory. Does not take drive letters into consideration.
+        /// </summary>
+        /// <param name="path">Path to check</param>
+        /// <returns>If path is valid in theory</returns>
+        private static bool IsPathValid(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return false;
+            return (path.IndexOfAny(Path.GetInvalidPathChars()) < 0);
+        }
+
+        /// <summary>
+        /// Check if file name is valid.
+        /// </summary>
+        /// <param name="fileName">File name to check</param>
+        /// <returns>If file name is valid</returns>
+        private static bool IsFileValid(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return false;
+            return (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0);
         }
 
         /// <summary>
@@ -265,7 +320,7 @@ namespace FaceitDemoLauncher
         /// <returns>If folder name is correct</returns>
         public static bool IsCounterStrikeFolderValid(string path)
         {
-            return path.EndsWith("\\csgo");
+            return ( (IsPathValid(path)) && (path.EndsWith("\\csgo")) );
         }
     }
 }

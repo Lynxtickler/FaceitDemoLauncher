@@ -9,6 +9,9 @@ namespace FaceitDemoLauncher
     /// </summary>
     public partial class Form1 : Form
     {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public Form1()
         {
             InitializeComponent();
@@ -25,6 +28,8 @@ namespace FaceitDemoLauncher
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -32,15 +37,13 @@ namespace FaceitDemoLauncher
             // label1
             // 
             this.label1.AllowDrop = true;
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoEllipsis = true;
+            this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(6, 16);
+            this.label1.Location = new System.Drawing.Point(3, 16);
             this.label1.Name = "label1";
             this.label1.Padding = new System.Windows.Forms.Padding(10);
-            this.label1.Size = new System.Drawing.Size(327, 180);
+            this.label1.Size = new System.Drawing.Size(333, 147);
             this.label1.TabIndex = 0;
             this.label1.Text = "Drop <demo>.dem.gz here";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -49,11 +52,13 @@ namespace FaceitDemoLauncher
             // 
             // groupBox2
             // 
+            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox2.Controls.Add(this.label1);
-            this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBox2.Location = new System.Drawing.Point(0, 0);
+            this.groupBox2.Location = new System.Drawing.Point(0, 33);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(339, 199);
+            this.groupBox2.Size = new System.Drawing.Size(339, 166);
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Drop area";
@@ -94,12 +99,32 @@ namespace FaceitDemoLauncher
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             // 
+            // textBox1
+            // 
+            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox1.Location = new System.Drawing.Point(117, 7);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(210, 20);
+            this.textBox1.TabIndex = 3;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(4, 9);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(107, 13);
+            this.label2.TabIndex = 4;
+            this.label2.Text = "New name (optional):";
+            // 
             // Form1
             // 
             this.AcceptButton = this.button2;
             this.AllowDrop = true;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(339, 241);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -111,6 +136,7 @@ namespace FaceitDemoLauncher
             this.groupBox2.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -127,8 +153,8 @@ namespace FaceitDemoLauncher
             menuitems[0].MenuItems.Add("&Open...", OnBrowseButtonClick);
             menuitems[0].MenuItems.Add("&Exit", OnExitClick);
             menuitems[1].MenuItems.Add("&Change csgo folder...", OnChangeFolderClick);
+            menuitems[2].MenuItems.Add("&GitHub page", OnGitHubClick);
             menuitems[2].MenuItems.Add("&About", OnShowInfoClick);
-            // TODO loput itemit
             foreach (var item in menuitems)
             {
                 Menu.MenuItems.Add(item);
@@ -170,13 +196,18 @@ namespace FaceitDemoLauncher
 
         private void OnExtractButtonClick(object sender, EventArgs e)
         {
-            if (Program.ExtractAndShow())
+            if (Program.ExtractAndShow(textBox1.Text))
                 Close();
         }
 
         private void OnChangeFolderClick(object sender, EventArgs e)
         {
             Program.UpdateCounterStrikeInstallPath(false);
+        }
+
+        private void OnGitHubClick(object sender, EventArgs e)
+        {
+            Program.RunStartInHiddenCmd("https://github.com/Lynxtickler/FaceitDemoLauncher");
         }
 
         private void OnShowInfoClick(object sender, EventArgs e)
