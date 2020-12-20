@@ -13,10 +13,10 @@ namespace FaceitDemoLauncher
         /// <summary>
         /// Overloaded constructor.
         /// </summary>
-        /// <param name="path">Extracted demo file name</param>
-        public MessageForm(string path) : this()
+        /// <param name="name">Extracted demo file name</param>
+        public MessageForm(string name) : this()
         {
-            demoName = path;
+            demoName = name;
         }
 
         /// <summary>

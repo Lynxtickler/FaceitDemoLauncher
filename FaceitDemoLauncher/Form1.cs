@@ -9,6 +9,8 @@ namespace FaceitDemoLauncher
     /// </summary>
     public partial class Form1 : Form
     {
+        private const string ExtractButtonText = "E&xtract...";
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -84,7 +86,7 @@ namespace FaceitDemoLauncher
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(85, 23);
             this.button2.TabIndex = 2;
-            this.button2.Text = "E&xtract...";
+            this.button2.Text = "placeholder";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.OnExtractButtonClick);
             // 
@@ -143,6 +145,7 @@ namespace FaceitDemoLauncher
         private void OnMainWindowLoaded(object sender, EventArgs e)
         {
             this.Text += " v" + Program.Version;
+            this.button2.Text = ExtractButtonText;
             this.Menu = new MainMenu();
             var menuitems = new MenuItem[]
             {
@@ -163,7 +166,8 @@ namespace FaceitDemoLauncher
 
         private void OnMainWindowShown(object sender, EventArgs e)
         {
-            if (!Program.UpdateCounterStrikeInstallPath()) { Close(); }
+            if (!Program.UpdateCounterStrikeInstallPath())
+                Close();
             if (Program.FetchDemoFromArguments())
                 UpdateFormElements();
         }
@@ -182,7 +186,7 @@ namespace FaceitDemoLauncher
 
         private void OnBrowseButtonClick(object sender, EventArgs e)
         {
-            OpenFileDialog filePickerDialog = new OpenFileDialog
+            var filePickerDialog = new OpenFileDialog
             {
                 Filter = "Compressed demo files (*.dem.gz)|*.dem.gz"
             };
@@ -196,8 +200,12 @@ namespace FaceitDemoLauncher
 
         private void OnExtractButtonClick(object sender, EventArgs e)
         {
+            this.button2.Text = "Extracting...";
+            this.button2.Enabled = false;
             if (Program.ExtractAndShow(textBox1.Text))
                 Close();
+            this.button2.Enabled = true;
+            this.button2.Text = ExtractButtonText;
         }
 
         private void OnChangeFolderClick(object sender, EventArgs e)

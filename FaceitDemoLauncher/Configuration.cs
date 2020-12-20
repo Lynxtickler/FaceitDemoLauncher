@@ -8,7 +8,9 @@ namespace FaceitDemoLauncher
     /// </summary>
     static class Config
     {
-        public static string counterStrikeInstallPath;
+        private static string counterStrikeInstallPath;
+
+        public static string CounterStrikeInstallPath { get => counterStrikeInstallPath; set => counterStrikeInstallPath = value; }
     }
 
     /// <summary>
@@ -22,8 +24,9 @@ namespace FaceitDemoLauncher
         /// <summary>
         /// Read config file.
         /// </summary>
+        /// <param name="showErrorMessages">Whether to show error messages or not</param>
         /// <returns>If reading succeeded</returns>
-        public static bool ReadConfig()
+        public static bool ReadConfig(bool showErrorMessages=true)
         {
             try
             {
@@ -32,13 +35,27 @@ namespace FaceitDemoLauncher
                     string configText = configReader.ReadToEnd().Trim();
                     if (!Program.IsCounterStrikeFolderValid(configText))
                         return false;
-                    Config.counterStrikeInstallPath = configText;
+                    Config.CounterStrikeInstallPath = configText;
                     return true;
                 }
             }
-            catch (FileNotFoundException e)
+            catch (Exception e)
             {
-                Console.WriteLine(e);
+                if ((e is FileNotFoundException) || (e is DirectoryNotFoundException))
+                {
+                    if (showErrorMessages)
+                        Program.ShowErrorBox("Config file not found.");
+                }
+                else if ((e is ArgumentException) || (e is ArgumentNullException) || (e is IOException))
+                {
+                    if (showErrorMessages)
+                        Program.ShowErrorBox("Config file is not readable.");
+                }
+                else
+                {
+                    Console.WriteLine(e);
+                    Program.ShowErrorBox(e.Message, true);
+                }
             }
             return false;
         }
@@ -60,7 +77,23 @@ namespace FaceitDemoLauncher
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                if ((e is ArgumentException) || (e is ArgumentNullException) || (e is IOException))
+                {
+                    Program.ShowErrorBox("Config file is not writable.");
+                }
+                else if ((e is DirectoryNotFoundException) || (e is PathTooLongException))
+                {
+                    Program.ShowErrorBox("Config file not found.");
+                }
+                else if ((e is UnauthorizedAccessException) || (e is System.Security.SecurityException))
+                {
+                    Program.ShowErrorBox("Insufficient permissions for writing to this install directory.");
+                }
+                else
+                {
+                    Console.WriteLine(e);
+                    Program.ShowErrorBox(e.Message, true);
+                }
             }
             return false;
         }

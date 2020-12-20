@@ -39,6 +39,18 @@ namespace FaceitDemoLauncher
         }
 
         /// <summary>
+        /// Show error message
+        /// </summary>
+        /// <param name="errorMessage">Message to show</param>
+        /// <param name="unexpected">If error was unexpected</param>
+        public static void ShowErrorBox(string errorMessage, bool unexpected = false)
+        {
+            if (unexpected)
+                errorMessage = "Unexpected error:\n" + errorMessage;
+            MessageBox.Show(errorMessage, Program.ErrorMessageTitle, System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+        }
+
+        /// <summary>
         /// Update compressed demo file reference and related logic.
         /// </summary>
         /// <param name="filePath">New compressed demo file path</param>
@@ -83,6 +95,7 @@ namespace FaceitDemoLauncher
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                ShowErrorBox(e.Message, true);
             }
             return FileValidationCode.ErrorUnknown;
         }
@@ -101,6 +114,7 @@ namespace FaceitDemoLauncher
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                ShowErrorBox(e.Message, true);
             }
             return false;
         }
@@ -129,18 +143,18 @@ namespace FaceitDemoLauncher
         {
             try
             {
-                if (Config.counterStrikeInstallPath == null)
+                if (Config.CounterStrikeInstallPath == null)
                     return null;
                 string newFilePath;
                 if (IsFileValid(newFileName))
                 {
                     if (!newFileName.EndsWith(".dem"))
                         newFileName = newFileName + ".dem";
-                    newFilePath = Path.Combine(new string[] { Config.counterStrikeInstallPath, newFileName });
+                    newFilePath = Path.Combine(new string[] { Config.CounterStrikeInstallPath, newFileName });
                 }
                 else
                 {
-                    newFilePath = Path.Combine(new string[] { Config.counterStrikeInstallPath, Path.GetFileNameWithoutExtension(compressedFilePath) });
+                    newFilePath = Path.Combine(new string[] { Config.CounterStrikeInstallPath, Path.GetFileNameWithoutExtension(compressedFilePath) });
                     if (DoesValidFileExist(newFilePath))
                         return newFilePath;
                 }
@@ -157,20 +171,26 @@ namespace FaceitDemoLauncher
                         Console.WriteLine("Successfully decompressed demo file.");
                         return newFilePath;
                     }
-                    
+
+                }
+                catch (Exception e)
+                {
+                    if (e is DirectoryNotFoundException)
+                        ShowErrorBox($"Either \"{compressedFilePath}\"\nor\n\"{newFilePath}\" was not found.");
+                    else if ((e is UnauthorizedAccessException) || (e is IOException) || (e is PathTooLongException) || (e is ArgumentException) || (e is ArgumentNullException))
+                        ShowErrorBox($"Either \"{compressedFilePath}\"\nor\n\"{newFilePath}\" is not readable/writable.");
+                    else
+                        ShowErrorBox(e.Message, true);
+                    throw;
                 }
                 finally
                 {
-                    if (compressedFileStream == null)
-                        compressedFileStream.Dispose();
-                    if (decompressedFileStream == null)
+                    if (decompressedFileStream != null)
                         decompressedFileStream.Dispose();
                 }
             }
-            catch
-            {
-                return null;
-            }
+            catch {}
+            return null;
         }
 
         /// <summary>
@@ -213,6 +233,7 @@ namespace FaceitDemoLauncher
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                ShowErrorBox(e.Message, true);
             }
             return false;
         }
@@ -236,11 +257,11 @@ namespace FaceitDemoLauncher
         /// </summary>
         /// <param name="readConfig">Whether to try reading config file before asking user input</param>
         /// <returns>True if a valid path was set</returns>
-        public static bool UpdateCounterStrikeInstallPath(bool readConfig = true)
+        public static bool UpdateCounterStrikeInstallPath(bool readConfig=true)
         {
-            if ( (readConfig) && (ConfigHandler.ReadConfig()) )
+            if ( (readConfig) && (ConfigHandler.ReadConfig(showErrorMessages: false)) )
                 return true;
-            if (PickNewCounterStrikeFolder(readConfig))
+            if (PickNewCounterStrikeFolder(showMessage: readConfig))
                 return true;
             return false;
         }
@@ -254,7 +275,7 @@ namespace FaceitDemoLauncher
         {
             FolderBrowserDialog folderPicker;
             if (showMessage)
-                MessageBox.Show("Previous configuration missing or invalid.\n\nPlease, pick the folder 'csgo' located\ninside the CS:GO installation folder", "Attention");
+                MessageBox.Show("Previous configuration missing or invalid.\n\nPlease, pick the folder 'csgo' located\ninside the CS:GO installation folder", "Create new config", MessageBoxButtons.OK, icon: MessageBoxIcon.Information);
             try
             {
                 folderPicker = new FolderBrowserDialog();
@@ -273,6 +294,7 @@ namespace FaceitDemoLauncher
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                ShowErrorBox(e.Message, true);
             }
             return false;
         }
