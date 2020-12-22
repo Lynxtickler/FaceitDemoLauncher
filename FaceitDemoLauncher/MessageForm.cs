@@ -25,11 +25,10 @@ namespace FaceitDemoLauncher
         public MessageForm()
         {
             InitializeComponent();
-            button1.Click += (object sender, EventArgs e) => {
-                Program.messageFormReturnCode = Program.MessageFormCode.Launch;
-                Close();
-            };
 
+            button1.DialogResult = DialogResult.OK;
+            button3.DialogResult = DialogResult.Cancel;
+            
             button2.Text = Button2DefaultText;
             button2.Click += (object sender, EventArgs e) => {
                 button2.Text = "Copied!";
@@ -45,11 +44,6 @@ namespace FaceitDemoLauncher
                 if (string.IsNullOrWhiteSpace(demoName))
                     demoName = System.IO.Path.GetFileNameWithoutExtension(Program.compressedFilePath);
                 Clipboard.SetText("playdemo " + demoName);
-            };
-
-            button3.Click += (object sender, EventArgs e) => {
-                Program.messageFormReturnCode = Program.MessageFormCode.Cancel;
-                Close();
             };
         }
     }

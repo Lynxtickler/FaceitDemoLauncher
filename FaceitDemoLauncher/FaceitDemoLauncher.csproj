@@ -7,7 +7,7 @@
     <ProjectGuid>{7FC0D39F-4341-4A6D-88D4-8DB5BC294347}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>FaceitDemoLauncher</RootNamespace>
-    <AssemblyName>FaceitDemoLauncher</AssemblyName>
+    <AssemblyName>Faceit Demo Launcher</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -26,7 +26,7 @@
     <ProductName>FaceitDemoLauncher</ProductName>
     <PublisherName>Lynxtickler</PublisherName>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.2.1.0</ApplicationVersion>
+    <ApplicationVersion>1.2.4.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>

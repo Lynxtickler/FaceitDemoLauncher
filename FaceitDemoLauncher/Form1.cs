@@ -132,6 +132,7 @@ namespace FaceitDemoLauncher
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(250, 250);
             this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Faceit Demo Launcher";
             this.Load += new System.EventHandler(this.OnMainWindowLoaded);
             this.Shown += new System.EventHandler(this.OnMainWindowShown);
@@ -202,7 +203,7 @@ namespace FaceitDemoLauncher
         {
             this.button2.Text = "Extracting...";
             this.button2.Enabled = false;
-            if (Program.ExtractAndShow(textBox1.Text))
+            if (Program.ExtractAndShow(textBox1.Text.Trim()))
                 Close();
             this.button2.Enabled = true;
             this.button2.Text = ExtractButtonText;
@@ -220,7 +221,7 @@ namespace FaceitDemoLauncher
 
         private void OnShowInfoClick(object sender, EventArgs e)
         {
-            MessageBox.Show($"Faceit demo launcher v.{Program.Version}", "About");
+            MessageBox.Show($"Faceit demo launcher v{Program.Version}", "About");
         }
 
         private void OnExitClick(object sender, EventArgs e)

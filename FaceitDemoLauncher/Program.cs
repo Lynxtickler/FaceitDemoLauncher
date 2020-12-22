@@ -15,7 +15,6 @@ namespace FaceitDemoLauncher
 
         public static string compressedFilePath;
         public static string launchCommand;
-        public static MessageFormCode messageFormReturnCode;
 
         public const string ErrorMessageTitle = "Error";
         public const string InvalidFileTypeMessage = "Only use filetype .dem.gz!";
@@ -23,7 +22,6 @@ namespace FaceitDemoLauncher
         public const string dropAreaTextRoot = "Drop new <demo>.dem.gz here\nor\nExtract using ";
 
         private enum FileValidationCode { Valid, ErrorWrongType, ErrorUnknown }
-        public enum MessageFormCode { Cancel, Launch }
 
 
         /// <summary>
@@ -141,6 +139,7 @@ namespace FaceitDemoLauncher
         /// <returns>Decompressed demo file path, null if decompression failed</returns>
         private static string Decompress(string newFileName = null)
         {
+            // TODO: needs refactoring
             try
             {
                 if (Config.CounterStrikeInstallPath == null)
@@ -155,9 +154,9 @@ namespace FaceitDemoLauncher
                 else
                 {
                     newFilePath = Path.Combine(new string[] { Config.CounterStrikeInstallPath, Path.GetFileNameWithoutExtension(compressedFilePath) });
-                    if (DoesValidFileExist(newFilePath))
-                        return newFilePath;
                 }
+                if (DoesValidFileExist(newFilePath))
+                    return newFilePath;
                 var compressedFile = new FileInfo(compressedFilePath);
                 FileStream compressedFileStream = null;
                 FileStream decompressedFileStream = null;
@@ -201,8 +200,8 @@ namespace FaceitDemoLauncher
         private static bool StartWatchingDemo(string demoName)
         {
             var messageForm = new MessageForm(demoName);
-            messageForm.ShowDialog();
-            if (messageFormReturnCode == MessageFormCode.Launch)
+            DialogResult dialogResult = messageForm.ShowDialog();
+            if (dialogResult == DialogResult.OK)
             {
                 RunStartInHiddenCmd(launchCommand);
                 return true;
