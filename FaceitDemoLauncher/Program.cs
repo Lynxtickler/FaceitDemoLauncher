@@ -140,56 +140,55 @@ namespace FaceitDemoLauncher
         private static string Decompress(string newFileName = null)
         {
             // TODO: needs refactoring
+            if (Config.CounterStrikeInstallPath == null)
+            {
+                ShowErrorBox("Configuration hasn't been saved in memory", unexpected: true);
+                return null;
+            }
+            string newFilePath;
+            if (IsFileValid(newFileName))
+            {
+                if (!newFileName.EndsWith(".dem"))
+                    newFileName = newFileName + ".dem";
+                newFilePath = Path.Combine(new string[] { Config.CounterStrikeInstallPath, newFileName });
+            }
+            else
+            {
+                newFilePath = Path.Combine(new string[] { Config.CounterStrikeInstallPath, Path.GetFileNameWithoutExtension(compressedFilePath) });
+            }
+            if (DoesValidFileExist(newFilePath))
+                return newFilePath;
+            FileInfo compressedFile = null;
+            FileStream compressedFileStream = null;
+            FileStream decompressedFileStream = null;
             try
             {
-                if (Config.CounterStrikeInstallPath == null)
-                    return null;
-                string newFilePath;
-                if (IsFileValid(newFileName))
+                compressedFile = new FileInfo(compressedFilePath);
+                compressedFileStream = compressedFile.OpenRead();
+                decompressedFileStream = File.Create(newFilePath);
+                using (var decompressionStream = new GZipStream(compressedFileStream, CompressionMode.Decompress))
                 {
-                    if (!newFileName.EndsWith(".dem"))
-                        newFileName = newFileName + ".dem";
-                    newFilePath = Path.Combine(new string[] { Config.CounterStrikeInstallPath, newFileName });
-                }
-                else
-                {
-                    newFilePath = Path.Combine(new string[] { Config.CounterStrikeInstallPath, Path.GetFileNameWithoutExtension(compressedFilePath) });
-                }
-                if (DoesValidFileExist(newFilePath))
+                    decompressionStream.CopyTo(decompressedFileStream);
+                    Console.WriteLine("Successfully decompressed demo file.");
                     return newFilePath;
-                var compressedFile = new FileInfo(compressedFilePath);
-                FileStream compressedFileStream = null;
-                FileStream decompressedFileStream = null;
-                try
-                {
-                    compressedFileStream = compressedFile.OpenRead();
-                    decompressedFileStream = File.Create(newFilePath);
-                    using (var decompressionStream = new GZipStream(compressedFileStream, CompressionMode.Decompress))
-                    {
-                        decompressionStream.CopyTo(decompressedFileStream);
-                        Console.WriteLine("Successfully decompressed demo file.");
-                        return newFilePath;
-                    }
+                }
 
-                }
-                catch (Exception e)
-                {
-                    if (e is DirectoryNotFoundException)
-                        ShowErrorBox($"Either \"{compressedFilePath}\"\nor\n\"{newFilePath}\" was not found.");
-                    else if ((e is UnauthorizedAccessException) || (e is IOException) || (e is PathTooLongException) || (e is ArgumentException) || (e is ArgumentNullException))
-                        ShowErrorBox($"Either \"{compressedFilePath}\"\nor\n\"{newFilePath}\" is not readable/writable.");
-                    else
-                        ShowErrorBox(e.Message, true);
-                    throw;
-                }
-                finally
-                {
-                    if (decompressedFileStream != null)
-                        decompressedFileStream.Dispose();
-                }
             }
-            catch {}
-            return null;
+            catch (Exception e)
+            {
+                if (e is DirectoryNotFoundException)
+                    ShowErrorBox($"Either \"{compressedFilePath}\"\nor\n\"{newFilePath}\" was not found.");
+                else if ((e is UnauthorizedAccessException) || (e is IOException) || (e is PathTooLongException) || (e is ArgumentException) || (e is ArgumentNullException))
+                    ShowErrorBox($"Either \"{compressedFilePath}\"\nor\n\"{newFilePath}\" is not readable/writable.");
+                else
+                    ShowErrorBox(e.Message, true);
+                return null;
+            }
+            finally
+            {
+                if (decompressedFileStream != null)
+                    decompressedFileStream.Dispose();
+            }
         }
 
         /// <summary>
@@ -260,9 +259,34 @@ namespace FaceitDemoLauncher
         {
             if ( (readConfig) && (ConfigHandler.ReadConfig(showErrorMessages: false)) )
                 return true;
+            string defaultCounterStrikeFolder = FindDefaultCounterStrikeFolder();
+            if (defaultCounterStrikeFolder != null)
+            {
+                if (ConfigHandler.WriteConfig(defaultCounterStrikeFolder))
+                    return true;
+            }
             if (PickNewCounterStrikeFolder(showMessage: readConfig))
                 return true;
             return false;
+        }
+
+        /// <summary>
+        /// Check most common install location for Counter-Strike: Global Offensive on multiple drives.
+        /// </summary>
+        /// <returns>Path if existing folder found, null if not</returns>
+        private static string FindDefaultCounterStrikeFolder()
+        {
+            var driveLetters = new string[] { "C", "D", "E", "F" };
+            var pathBase = @"Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\csgo";
+            foreach (var driveLetter in driveLetters)
+            {
+                var currentDrivePath = Path.Combine(new string[] { driveLetter + @":\", pathBase });
+                if ((IsCounterStrikeFolderValid(currentDrivePath)) && (Directory.Exists(currentDrivePath)))
+                {
+                    return currentDrivePath;
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -272,9 +296,9 @@ namespace FaceitDemoLauncher
         /// <returns>If new folder was selected</returns>
         private static bool PickNewCounterStrikeFolder(bool showMessage=true)
         {
-            FolderBrowserDialog folderPicker;
             if (showMessage)
                 MessageBox.Show("Previous configuration missing or invalid.\n\nPlease, pick the folder 'csgo' located\ninside the CS:GO installation folder", "Create new config", MessageBoxButtons.OK, icon: MessageBoxIcon.Information);
+            FolderBrowserDialog folderPicker;
             try
             {
                 folderPicker = new FolderBrowserDialog();

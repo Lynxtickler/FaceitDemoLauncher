@@ -67,13 +67,14 @@ namespace FaceitDemoLauncher
         /// <returns>If writing succeeded</returns>
         public static bool WriteConfig(string configToWrite)
         {
+            StreamWriter configStream = null;
             try
             {
-                using (StreamWriter configStream = File.CreateText(configPath))
-                {
-                    configStream.Write(configToWrite);
-                    return true;
-                }
+                configStream = File.CreateText(configPath);
+                configStream.Write(configToWrite);
+                Config.CounterStrikeInstallPath = configToWrite;
+                Console.WriteLine($"Saved {configToWrite} to config.");
+                return true;
             }
             catch (Exception e)
             {
@@ -94,6 +95,11 @@ namespace FaceitDemoLauncher
                     Console.WriteLine(e);
                     Program.ShowErrorBox(e.Message, true);
                 }
+            }
+            finally
+            {
+                if (configStream != null)
+                    configStream.Dispose();
             }
             return false;
         }
