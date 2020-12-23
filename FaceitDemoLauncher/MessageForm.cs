@@ -42,7 +42,7 @@ namespace FaceitDemoLauncher
                 };
                 textTimer.Enabled = true;
                 if (string.IsNullOrWhiteSpace(demoName))
-                    demoName = System.IO.Path.GetFileNameWithoutExtension(Program.compressedFilePath);
+                    demoName = System.IO.Path.GetFileNameWithoutExtension(Program.CompressedFilePath);
                 Clipboard.SetText("playdemo " + demoName);
             };
         }

@@ -237,7 +237,7 @@ namespace FaceitDemoLauncher
         {
             if (validFileSelected)
             {
-                label1.Text = Program.dropAreaTextRoot + Path.GetFileName(Program.compressedFilePath);
+                label1.Text = Program.dropAreaTextRoot + Path.GetFileName(Program.CompressedFilePath);
                 button2.Enabled = true;
                 button2.Focus();
             }

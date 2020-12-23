@@ -5,23 +5,28 @@ using System.Windows.Forms;
 
 namespace FaceitDemoLauncher
 {
+    enum FileValidationCode { Valid, ErrorWrongType, ErrorUnknown }
+
+
     /// <summary>
     /// Main functionality class.
     /// </summary>
     static class Program
     {
+        // Properties
         public static string Version => Application.ProductVersion;
+        public static string CompressedFilePath { get => compressedFilePath; set => compressedFilePath = value; }
+
+        // Fields
         private static string[] programArgs;
+        private static string compressedFilePath;
+        private static string launchCommand;
 
-        public static string compressedFilePath;
-        public static string launchCommand;
-
+        // Constants
         public const string ErrorMessageTitle = "Error";
         public const string InvalidFileTypeMessage = "Only use filetype .dem.gz!";
         public const string DefaultDropAreaText = "Drop <demo>.dem.gz here";
         public const string dropAreaTextRoot = "Drop new <demo>.dem.gz here\nor\nExtract using ";
-
-        private enum FileValidationCode { Valid, ErrorWrongType, ErrorUnknown }
 
 
         /// <summary>
@@ -67,7 +72,7 @@ namespace FaceitDemoLauncher
                 return false;
             }
             Console.WriteLine("Updating compressed file path");
-            compressedFilePath = filePath;
+            CompressedFilePath = filePath;
             bool success = CreateLaunchCommand();
             if (!success)
             {
@@ -93,7 +98,7 @@ namespace FaceitDemoLauncher
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                ShowErrorBox(e.Message, true);
+                ShowErrorBox(e.Message, unexpected: true);
             }
             return FileValidationCode.ErrorUnknown;
         }
@@ -106,13 +111,13 @@ namespace FaceitDemoLauncher
         {
             try
             {
-                launchCommand = $"steam://rungameid/730//+playdemo {System.IO.Path.GetFileNameWithoutExtension(compressedFilePath)}";
+                launchCommand = $"steam://rungameid/730//+playdemo {System.IO.Path.GetFileNameWithoutExtension(CompressedFilePath)}";
                 return true;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                ShowErrorBox(e.Message, true);
+                ShowErrorBox(e.Message, unexpected: true);
             }
             return false;
         }
@@ -154,7 +159,7 @@ namespace FaceitDemoLauncher
             }
             else
             {
-                newFilePath = Path.Combine(new string[] { Config.CounterStrikeInstallPath, Path.GetFileNameWithoutExtension(compressedFilePath) });
+                newFilePath = Path.Combine(new string[] { Config.CounterStrikeInstallPath, Path.GetFileNameWithoutExtension(CompressedFilePath) });
             }
             if (DoesValidFileExist(newFilePath))
                 return newFilePath;
@@ -163,7 +168,7 @@ namespace FaceitDemoLauncher
             FileStream decompressedFileStream = null;
             try
             {
-                compressedFile = new FileInfo(compressedFilePath);
+                compressedFile = new FileInfo(CompressedFilePath);
                 compressedFileStream = compressedFile.OpenRead();
                 decompressedFileStream = File.Create(newFilePath);
                 using (var decompressionStream = new GZipStream(compressedFileStream, CompressionMode.Decompress))
@@ -177,11 +182,11 @@ namespace FaceitDemoLauncher
             catch (Exception e)
             {
                 if (e is DirectoryNotFoundException)
-                    ShowErrorBox($"Either \"{compressedFilePath}\"\nor\n\"{newFilePath}\" was not found.");
-                else if ((e is UnauthorizedAccessException) || (e is IOException) || (e is PathTooLongException) || (e is ArgumentException) || (e is ArgumentNullException))
-                    ShowErrorBox($"Either \"{compressedFilePath}\"\nor\n\"{newFilePath}\" is not readable/writable.");
+                    ShowErrorBox($"Either \"{CompressedFilePath}\"\nor\n\"{newFilePath}\" was not found.");
+                else if ((e is UnauthorizedAccessException) || (e is IOException) || (e is PathTooLongException) || (e is ArgumentException) || (e is ArgumentNullException) || (e is System.Security.SecurityException))
+                    ShowErrorBox($"Either \"{CompressedFilePath}\"\nor\n\"{newFilePath}\" is not readable/writable.");
                 else
-                    ShowErrorBox(e.Message, true);
+                    ShowErrorBox(e.Message, unexpected: true);
                 return null;
             }
             finally
@@ -231,7 +236,7 @@ namespace FaceitDemoLauncher
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                ShowErrorBox(e.Message, true);
+                ShowErrorBox(e.Message,unexpected: true);
             }
             return false;
         }
@@ -257,7 +262,7 @@ namespace FaceitDemoLauncher
         /// <returns>True if a valid path was set</returns>
         public static bool UpdateCounterStrikeInstallPath(bool readConfig=true)
         {
-            if ( (readConfig) && (ConfigHandler.ReadConfig(showErrorMessages: false)) )
+            if ((readConfig) && (ConfigHandler.ReadConfig(showErrorMessages: false)))
                 return true;
             string defaultCounterStrikeFolder = FindDefaultCounterStrikeFolder();
             if (defaultCounterStrikeFolder != null)
@@ -305,7 +310,7 @@ namespace FaceitDemoLauncher
                 while (true)
                 {
                     DialogResult result = folderPicker.ShowDialog();
-                    if ( (result != DialogResult.OK) || (string.IsNullOrWhiteSpace(folderPicker.SelectedPath)) )
+                    if ((result != DialogResult.OK) || (string.IsNullOrWhiteSpace(folderPicker.SelectedPath)))
                         return false;
                     if (IsCounterStrikeFolderValid(folderPicker.SelectedPath))
                         break;
@@ -317,7 +322,7 @@ namespace FaceitDemoLauncher
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                ShowErrorBox(e.Message, true);
+                ShowErrorBox(e.Message, unexpected: true);
             }
             return false;
         }
@@ -365,7 +370,7 @@ namespace FaceitDemoLauncher
         /// <returns>If folder name is correct</returns>
         public static bool IsCounterStrikeFolderValid(string path)
         {
-            return ( (IsPathValid(path)) && (path.EndsWith("\\csgo")) );
+            return ((IsPathValid(path)) && (path.EndsWith("\\csgo")));
         }
     }
 }

@@ -26,7 +26,7 @@
     <ProductName>FaceitDemoLauncher</ProductName>
     <PublisherName>Lynxtickler</PublisherName>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.2.4.0</ApplicationVersion>
+    <ApplicationVersion>1.2.5.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>

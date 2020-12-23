@@ -18,8 +18,7 @@ namespace FaceitDemoLauncher
     /// </summary>
     static class ConfigHandler
     {
-        public static string configPath = Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + "\\config.cfg";
-
+        private static string configPath = Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + "\\config.cfg";
 
         /// <summary>
         /// Read config file.
@@ -54,7 +53,7 @@ namespace FaceitDemoLauncher
                 else
                 {
                     Console.WriteLine(e);
-                    Program.ShowErrorBox(e.Message, true);
+                    Program.ShowErrorBox(e.Message, unexpected: true);
                 }
             }
             return false;
@@ -93,7 +92,7 @@ namespace FaceitDemoLauncher
                 else
                 {
                     Console.WriteLine(e);
-                    Program.ShowErrorBox(e.Message, true);
+                    Program.ShowErrorBox(e.Message, unexpected: true);
                 }
             }
             finally
