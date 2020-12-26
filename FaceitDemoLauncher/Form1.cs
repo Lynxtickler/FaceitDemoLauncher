@@ -11,6 +11,26 @@ namespace FaceitDemoLauncher
     {
         private const string ExtractButtonText = "E&xtract...";
 
+        private string textBoxText = "";
+
+        public string TextBoxText
+        {
+            get { return textBoxText; }
+            set
+            {
+                if (Program.IsStringValidDemoName(value))
+                {
+                    this.errorProvider1.SetError(textBox1, "");
+                    textBoxText = value;
+                }
+                else
+                {
+                    this.errorProvider1.SetError(textBox1, "Only English letters, numbers 0-9 or (some) valid pathname characters are accepted.");
+                }
+
+            }
+        }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -24,6 +44,7 @@ namespace FaceitDemoLauncher
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -32,8 +53,11 @@ namespace FaceitDemoLauncher
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
+            this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
+            this.padLabel = new System.Windows.Forms.Label();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -105,9 +129,11 @@ namespace FaceitDemoLauncher
             // 
             this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox1.DataBindings.Add(new System.Windows.Forms.Binding("Text", this, "TextBoxText", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.errorProvider1.SetIconPadding(this.textBox1, 3);
             this.textBox1.Location = new System.Drawing.Point(117, 7);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(210, 20);
+            this.textBox1.Size = new System.Drawing.Size(198, 20);
             this.textBox1.TabIndex = 3;
             // 
             // label2
@@ -119,12 +145,27 @@ namespace FaceitDemoLauncher
             this.label2.TabIndex = 4;
             this.label2.Text = "New name (optional):";
             // 
+            // errorProvider1
+            // 
+            this.errorProvider1.ContainerControl = this;
+            // 
+            // padLabel
+            // 
+            this.padLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.padLabel.CausesValidation = false;
+            this.padLabel.Location = new System.Drawing.Point(321, 9);
+            this.padLabel.Name = "padLabel";
+            this.padLabel.Size = new System.Drawing.Size(12, 15);
+            this.padLabel.TabIndex = 5;
+            this.padLabel.Text = " ";
+            // 
             // Form1
             // 
             this.AcceptButton = this.button2;
             this.AllowDrop = true;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(339, 241);
+            this.Controls.Add(this.padLabel);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.groupBox2);
@@ -138,6 +179,7 @@ namespace FaceitDemoLauncher
             this.Shown += new System.EventHandler(this.OnMainWindowShown);
             this.groupBox2.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -201,10 +243,16 @@ namespace FaceitDemoLauncher
 
         private void OnExtractButtonClick(object sender, EventArgs e)
         {
+            if (this.errorProvider1.GetError(textBox1) != "")
+            {
+                Program.ShowErrorBox("Provide a valid demo name");
+                return;
+            }
             this.button2.Text = "Extracting...";
             this.button2.Enabled = false;
-            if (Program.ExtractAndShow(textBox1.Text.Trim()))
+            if (Program.ExtractAndShow(TextBoxText.Trim()))
                 Close();
+            this.textBox1.Text = "";
             this.button2.Enabled = true;
             this.button2.Text = ExtractButtonText;
         }

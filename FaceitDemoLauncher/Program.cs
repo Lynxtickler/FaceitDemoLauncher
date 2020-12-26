@@ -23,6 +23,7 @@ namespace FaceitDemoLauncher
         private static string launchCommand;
 
         // Constants
+        public const string AcceptedSpecialCharacters = " .";
         public const string ErrorMessageTitle = "Error";
         public const string InvalidFileTypeMessage = "Only use filetype .dem.gz!";
         public const string DefaultDropAreaText = "Drop <demo>.dem.gz here";
@@ -73,12 +74,6 @@ namespace FaceitDemoLauncher
             }
             Console.WriteLine("Updating compressed file path");
             CompressedFilePath = filePath;
-            bool success = CreateLaunchCommand();
-            if (!success)
-            {
-                Console.WriteLine("Unexpected error occured. Launch command couldn't be generated.");
-                return false;
-            }
             return true;
         }
 
@@ -106,12 +101,15 @@ namespace FaceitDemoLauncher
         /// <summary>
         /// Create CS:GO launch command that plays demo file instantly
         /// </summary>
+        /// <param name="demoName">Demo file name</param>
         /// <returns>Whether successful or not</returns>
-        private static bool CreateLaunchCommand()
+        private static bool CreateLaunchCommand(string demoName = null)
         {
             try
             {
-                launchCommand = $"steam://rungameid/730//+playdemo {System.IO.Path.GetFileNameWithoutExtension(CompressedFilePath)}";
+                if (demoName == null)
+                    demoName = System.IO.Path.GetFileNameWithoutExtension(CompressedFilePath);
+                launchCommand = $"steam://rungameid/730//+playdemo {demoName}";
                 return true;
             }
             catch (Exception e)
@@ -203,6 +201,12 @@ namespace FaceitDemoLauncher
         /// <returns>If user launched the game</returns>
         private static bool StartWatchingDemo(string demoName)
         {
+            bool success = CreateLaunchCommand(demoName);
+            if (!success)
+            {
+                ShowErrorBox("Launch command couldn't be created.", unexpected: true);
+                return false;
+            }
             var messageForm = new MessageForm(demoName);
             DialogResult dialogResult = messageForm.ShowDialog();
             if (dialogResult == DialogResult.OK)
@@ -371,6 +375,16 @@ namespace FaceitDemoLauncher
         public static bool IsCounterStrikeFolderValid(string path)
         {
             return ((IsPathValid(path)) && (path.EndsWith("\\csgo")));
+        }
+
+        /// <summary>
+        /// Check if string is completely made of English letters, numerals or a few common special characters
+        /// </summary>
+        /// <param name="stringToBeChecked">String to be checked</param>
+        /// <returns>Is string good for a Counter-Strike demo name</returns>
+        public static bool IsStringValidDemoName(string stringToBeChecked)
+        {
+            return System.Text.RegularExpressions.Regex.IsMatch(stringToBeChecked, $"^[a-zA-Z0-9{AcceptedSpecialCharacters}]*$");
         }
     }
 }
