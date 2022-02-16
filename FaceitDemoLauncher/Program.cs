@@ -272,7 +272,10 @@ namespace FaceitDemoLauncher
             if (defaultCounterStrikeFolder != null)
             {
                 if (ConfigHandler.WriteConfig(defaultCounterStrikeFolder))
+                {
+                    MessageBox.Show($"Found a default install location:\n{defaultCounterStrikeFolder}", "Folder changed!");
                     return true;
+                }
             }
             if (PickNewCounterStrikeFolder(showMessage: readConfig))
                 return true;
